@@ -1,0 +1,46 @@
+{
+  "servers": {
+    "dicomWeb": [
+      {
+        "name": "iCloudArc",
+        "wadoUriRoot": "http://192.168.6.250:11006/jaxrs/wado/institution/33",
+        "qidoRoot": "http://192.168.6.250:11006/jaxrs/institution/zxyy/33",
+        "wadoRoot": "http://192.168.6.250:11006/jaxrs/institution/zxyy/33",
+        "qidoSupportsIncludeField": false,
+        "imageRendering": "wadors",
+        "thumbnailRendering": "wadors",
+        "requestOptions": {
+          "auth": "admin:admin",
+          "logRequests": true,
+          "logResponses": false,
+          "logTiming": true
+        }
+      }],
+    "dimse": [{
+      "name": "iCloudArc_DIMSE",
+      "wadoUriRoot": "http://192.168.6.250:11006/jaxrs/wado/institution/zxyy/33",
+      "requestOptions": {
+        "auth": "admin:admin",
+        "logRequests": true,
+        "logResponses": false,
+        "logTiming": true
+      },
+      "peers": [
+        {
+          "host": "192.168.5.48",
+          "port": 11112,
+          "aeTitle": "DCM4CHEE",
+          "default": true,
+          "server": true
+        }
+      ]
+    }]
+  },
+  "defaultServiceType": "dicomWeb",
+  "public": {
+    "verifyEmail": false,
+    "ui": {
+      "studyListFunctionsEnabled": true
+    }
+  }
+}
