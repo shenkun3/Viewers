@@ -4,8 +4,8 @@
       {
         "name": "iCloudArc",
         "wadoUriRoot": "http://192.168.6.250:11006/jaxrs/wado/institution/33",
-        "qidoRoot": "http://192.168.6.250:11006/jaxrs/institution/zxyy/33",
-        "wadoRoot": "http://192.168.6.250:11006/jaxrs/institution/zxyy/33",
+        "qidoRoot": "http://192.168.6.250:11006/jaxrs/institution/33",
+        "wadoRoot": "http://192.168.6.250:11006/jaxrs/institution/33",
         "qidoSupportsIncludeField": false,
         "imageRendering": "wadors",
         "thumbnailRendering": "wadors",
@@ -18,7 +18,7 @@
       }],
     "dimse": [{
       "name": "iCloudArc_DIMSE",
-      "wadoUriRoot": "http://192.168.6.250:11006/jaxrs/wado/institution/zxyy/33",
+      "wadoUriRoot": "http://192.168.6.250:11006/jaxrs/wado/institution/33",
       "requestOptions": {
         "auth": "admin:admin",
         "logRequests": true,
@@ -27,12 +27,20 @@
       },
       "peers": [
         {
-          "host": "192.168.5.48",
-          "port": 11112,
-          "aeTitle": "DCM4CHEE",
+          "host": "192.168.6.250",
+          "port": 11008,
+          "aeTitle": "iCloudArcServer",
+          "default": true,
+          "supportsInstanceRetrievalByStudyUid": false
+        },
+        {
+          "host": "0.0.0.0",
+          "port": 3006,
+          "aeTitle": "viewerAE",
           "default": true,
           "server": true
         }
+
       ]
     }]
   },
