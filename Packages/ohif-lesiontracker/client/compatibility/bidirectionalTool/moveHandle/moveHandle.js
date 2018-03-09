@@ -3,13 +3,13 @@ import setHandlesPosition from './setHandlesPosition';
 
 export default function (mouseEventData, toolType, data, handle, doneMovingCallback, preventHandleOutsideImage) {
     const element = mouseEventData.element;
-    const $element = $(element);
     const distanceFromTool = {
         x: handle.x - mouseEventData.currentPoints.image.x,
         y: handle.y - mouseEventData.currentPoints.image.y
     };
 
-    const mouseDragCallback = (event, eventData) => {
+    const mouseDragCallback = event => {
+        const eventData = event.detail;
         handle.active = true;
 
         if (handle.index === undefined || handle.index === null) {
@@ -29,16 +29,17 @@ export default function (mouseEventData, toolType, data, handle, doneMovingCallb
 
         cornerstone.updateImage(element);
 
-        const eventType = 'CornerstoneToolsMeasurementModified';
+        const eventType = 'cornerstonetoolsmeasurementmodified';
         const modifiedEventData = {
-            toolType: toolType,
-            element: element,
+            toolType,
+            element,
             measurementData: data
         };
-        $element.trigger(eventType, modifiedEventData);
+
+        cornerstone.triggerEvent(element, eventType, modifiedEventData);
     };
 
-    $element.on('CornerstoneToolsMouseDrag', mouseDragCallback);
+    element.addEventListener('cornerstonetoolsmousedrag', mouseDragCallback);
 
     const currentImage = cornerstone.getImage(element);
     const imageRenderedHandler = () => {
@@ -51,13 +52,13 @@ export default function (mouseEventData, toolType, data, handle, doneMovingCallb
     };
 
     // Bind the event listener for image rendering
-    $element.on('CornerstoneImageRendered', imageRenderedHandler);
+    element.addEventListener('cornerstoneimagerendered', imageRenderedHandler);
 
     const mouseUpCallback = () => {
-        $element.off('CornerstoneToolsMouseDrag', mouseDragCallback);
-        $element.off('CornerstoneToolsMouseUp', mouseUpCallback);
-        $element.off('CornerstoneToolsMouseClick', mouseUpCallback);
-        $element.off('CornerstoneImageRendered', imageRenderedHandler);
+        element.removeEventListener('cornerstonetoolsmousedrag', mouseDragCallback);
+        element.removeEventListener('cornerstonetoolsmouseup', mouseUpCallback);
+        element.removeEventListener('cornerstonetoolsmouseclick', mouseUpCallback);
+        element.removeEventListener('cornerstoneimagerendered', imageRenderedHandler);
         cornerstone.updateImage(element);
 
         if (typeof doneMovingCallback === 'function') {
@@ -65,6 +66,6 @@ export default function (mouseEventData, toolType, data, handle, doneMovingCallb
         }
     };
 
-    $element.on('CornerstoneToolsMouseUp', mouseUpCallback);
-    $element.on('CornerstoneToolsMouseClick', mouseUpCallback);
+    element.addEventListener('cornerstonetoolsmouseup', mouseUpCallback);
+    element.addEventListener('cornerstonetoolsmouseclick', mouseUpCallback);
 }

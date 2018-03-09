@@ -1,17 +1,18 @@
-import { OHIF } from 'meteor/ohif:core';
 import { Session } from 'meteor/session';
 import { $ } from 'meteor/jquery';
+import { OHIF } from 'meteor/ohif:core';
+import { cornerstone, cornerstoneTools } from 'meteor/ohif:cornerstone';
 import { toolManager } from '../toolManager';
 
 export class StackImagePositionOffsetSynchronizer {
     constructor() {
         this.active = false;
         this.syncedViewports = [];
-        this.synchronizer = new cornerstoneTools.Synchronizer('CornerstoneNewImage', cornerstoneTools.stackImagePositionOffsetSynchronizer);
+        this.synchronizer = new cornerstoneTools.Synchronizer('cornerstonenewimage', cornerstoneTools.stackImagePositionOffsetSynchronizer);
     }
 
     static get ELEMENT_DISABLED_EVENT() {
-        return 'CornerstoneElementDisabled.StackImagePositionOffsetSynchronizer';
+        return 'cornerstoneelementdisabled.StackImagePositionOffsetSynchronizer';
     }
 
     isActive() {
@@ -68,8 +69,11 @@ export class StackImagePositionOffsetSynchronizer {
             this.synchronizer.add(viewport.element);
             this.syncedViewports.push(viewport);
             viewportIndexes.push(viewport.index);
+            if (!this.disabledListener) {
+                this.disabledListener = this.elementDisabledHandler(this);
+            }
 
-            $(viewport.element).on(StackImagePositionOffsetSynchronizer.ELEMENT_DISABLED_EVENT, this.elementDisabledHandler(this));
+            viewport.element.addEventListener(StackImagePositionOffsetSynchronizer.ELEMENT_DISABLED_EVENT, this.disabledListener);
         });
 
         this.active = true;
@@ -96,7 +100,7 @@ export class StackImagePositionOffsetSynchronizer {
         this.syncedViewports.splice(index, 1);
         this.synchronizer.remove(viewport.element);
         this.removeLinkedViewportFromSession(viewport);
-        $(viewport.element).off(StackImagePositionOffsetSynchronizer.ELEMENT_DISABLED_EVENT);
+        viewport.element.removeEventListener(StackImagePositionOffsetSynchronizer.ELEMENT_DISABLED_EVENT, this.disabledListener);
     }
 
     getViewportByElement(viewportElement) {
@@ -130,9 +134,7 @@ export class StackImagePositionOffsetSynchronizer {
     }
 
     elementDisabledHandler(context) {
-        return (e, eventData) => {
-            context.removeViewportByElement(eventData.element);
-        };
+        return e => context.removeViewportByElement(e.detail.element);
     }
 
     getViewportByIndexes(viewportIndexes) {
@@ -213,4 +215,4 @@ export class StackImagePositionOffsetSynchronizer {
             OHIF.log.info(`StackImagePositionOffsetSynchronizer getViewportImageNormal: ${errorMessage}`);
         }
     }
-};
+}

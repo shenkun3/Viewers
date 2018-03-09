@@ -6,7 +6,8 @@ import pointNearTool from './pointNearTool';
 
 // Replaces the cornerstoneTools.handleActivator function by skiping the active handle comparison
 const handleActivator = (element, handles, canvasPoint, distanceThreshold=6) => {
-    const nearbyHandle = cornerstoneTools.getHandleNearImagePoint(element, handles, canvasPoint, distanceThreshold);
+    const getHandle = cornerstoneTools.getHandleNearImagePoint;
+    const nearbyHandle = getHandle(element, handles, canvasPoint, distanceThreshold);
 
     let handleActivatorChanged = false;
     Object.keys(handles).forEach(handleKey => {
@@ -24,15 +25,13 @@ const handleActivator = (element, handles, canvasPoint, distanceThreshold=6) => 
 };
 
 // mouseMoveCallback is used to hide handles when mouse is away
-export default function (event, eventData) {
+export default function (event) {
+    const eventData = event.detail;
+    const { element } = eventData;
     cornerstoneTools.toolCoordinates.setCoords(eventData);
-    // if a mouse button is down, do nothing
-    if (eventData.which !== 0) {
-        return;
-    }
 
     // if we have no tool data for this element, do nothing
-    const toolData = cornerstoneTools.getToolState(eventData.element, toolType);
+    const toolData = cornerstoneTools.getToolState(element, toolType);
     if (!toolData) return;
 
     // We have tool data, search through all data and see if we can activate a handle
@@ -42,7 +41,7 @@ export default function (event, eventData) {
         const coords = eventData.currentPoints.canvas;
 
         const data = toolData.data[i];
-        const handleActivatorChanged = handleActivator(eventData.element, data.handles, coords);
+        const handleActivatorChanged = handleActivator(element, data.handles, coords);
         Object.keys(data.handles).forEach(handleKey => {
             if (handleKey === 'textBox') return;
             const handle = data.handles[handleKey];
@@ -53,7 +52,9 @@ export default function (event, eventData) {
             imageNeedsUpdate = true;
         }
 
-        if ((pointNearTool(eventData.element, data, coords) && !data.active) || (!pointNearTool(eventData.element, data, coords) && data.active)) {
+        const nearToolAndInactive = pointNearTool(element, data, coords) && !data.active;
+        const notNearToolAndActive = !pointNearTool(element, data, coords) && data.active;
+        if (nearToolAndInactive || notNearToolAndActive) {
             data.active = !data.active;
             imageNeedsUpdate = true;
         }
@@ -61,6 +62,6 @@ export default function (event, eventData) {
 
     // Handle activation status changed, redraw the image
     if (imageNeedsUpdate === true) {
-        cornerstone.updateImage(eventData.element);
+        cornerstone.updateImage(element);
     }
 }

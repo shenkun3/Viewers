@@ -3,6 +3,7 @@ import { Template } from 'meteor/templating';
 import { Tracker } from 'meteor/tracker';
 import { Session } from 'meteor/session';
 import { OHIF } from 'meteor/ohif:core';
+import { cornerstone } from 'meteor/ohif:cornerstone';
 
 Template.imageThumbnail.onCreated(() => {
     const instance = Template.instance();
@@ -62,7 +63,7 @@ Template.imageThumbnail.onRendered(() => {
 
             cornerstone.displayImage(element, image);
 
-            $element.one('CornerstoneImageRendered', () => {
+            $element.one('cornerstoneimagerendered', () => {
                 const enabledElement = cornerstone.getEnabledElement(element);
 
                 // Create a static image from

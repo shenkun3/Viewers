@@ -3,6 +3,7 @@ import { Session } from 'meteor/session';
 import { Random } from 'meteor/random';
 import { $ } from 'meteor/jquery';
 import { OHIF } from 'meteor/ohif:core';
+import { cornerstone, cornerstoneTools } from 'meteor/ohif:cornerstone';
 import { getFrameOfReferenceUID } from './getFrameOfReferenceUID';
 import { updateCrosshairsSynchronizer } from './updateCrosshairsSynchronizer';
 import { crosshairsSynchronizers } from './crosshairsSynchronizers';
@@ -246,18 +247,23 @@ export const toolManager = {
     },
 
     configureLoadProcess() {
-        // Whenever the CornerstoneImageLoadProgress is fired, identify which viewports
+        // Whenever CornerstoneImageLoadProgress is fired, identify which viewports
         // the "in-progress" image is to be displayed in. Then pass the percent complete
         // via the Meteor Session to the other templates to be displayed in the relevant viewports.
-        $(cornerstone.events).on('CornerstoneImageLoadProgress', (e, eventData) => {
-            viewportIndices = this.getKeysByValue(window.ViewportLoading, eventData.imageId);
+
+        function handleLoadProgress (e) {
+            const eventData = e.detail;
+            const viewportIndices = toolManager.getKeysByValue(window.ViewportLoading, eventData.imageId);
             viewportIndices.forEach(viewportIndex => {
                 Session.set('CornerstoneLoadProgress' + viewportIndex, eventData.percentComplete);
             });
 
             const encodedId = OHIF.string.encodeId(eventData.imageId);
             Session.set('CornerstoneThumbnailLoadProgress' + encodedId, eventData.percentComplete);
-        });
+        }
+
+        cornerstone.events.removeEventListener('cornerstoneimageloadprogress', handleLoadProgress);
+        cornerstone.events.addEventListener('cornerstoneimageloadprogress', handleLoadProgress);
     },
 
     setGestures(newGestures) {
@@ -339,18 +345,21 @@ export const toolManager = {
         if (button === 'left') {
             newToolIdLeft = toolId;
         }
+
         const newCornerstoneToolLeft = tools[newToolIdLeft]; // left mouse tool is used for touch as well
 
         let newToolIdMiddle = activeTool.middle;
         if (button === 'middle') {
             newToolIdMiddle = toolId;
         }
+
         const newCornerstoneToolMiddle = cornerstoneTools[newToolIdMiddle];
 
         let newToolIdRight = activeTool.right;
         if (button === 'right') {
             newToolIdRight = toolId;
         }
+
         const newCornerstoneToolRight = cornerstoneTools[newToolIdRight];
 
         // Deactivate scroll wheel tools
@@ -429,7 +438,9 @@ export const toolManager = {
                 newCornerstoneToolMiddle.activate(element, 2); // 2 means middle mouse button
                 newCornerstoneToolRight.activate(element, 5); // 5 means left mouse button and right mouse button
             } else {
-                newCornerstoneToolLeft.mouse.activate(element, 1); // 1 means left mouse button
+                setTimeout(() => newCornerstoneToolLeft.mouse.activate(element, 1));
+                // >>>> TODO Find out why it's working only with a timeout
+                // newCornerstoneToolLeft.mouse.activate(element, 1); // 1 means left mouse button
                 newCornerstoneToolMiddle.activate(element, 2); // 2 means middle mouse button
                 newCornerstoneToolRight.activate(element, 4); // 4 means right mouse button
             }
@@ -479,13 +490,6 @@ export const toolManager = {
             }
         };
 
-        if ($elements.toArray().reduce(checkElementEnabled, false)) {
-            // if at least one element is not enabled, we do not activate tool.
-            OHIF.log.info(`Could not activate tool ${toolId} due to a viewport not being enabled. Try again later.`);
-
-            return;
-        }
-
         if (!activeTool) {
             activeTool = defaultTool;
         }
@@ -515,6 +519,10 @@ export const toolManager = {
 
         // Otherwise, set the active tool for all viewport elements
         $elements.each((index, element) => {
+            if (checkElementEnabled(element) === false) {
+                return;
+            }
+
             toolManager.setActiveToolForElement(toolId, element, button);
         });
 

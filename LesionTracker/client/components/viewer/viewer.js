@@ -19,9 +19,9 @@ Meteor.startup(() => {
     OHIF.viewer.stackImagePositionOffsetSynchronizer = new OHIF.viewerbase.StackImagePositionOffsetSynchronizer();
 
     // Create the synchronizer used to update reference lines
-    OHIF.viewer.updateImageSynchronizer = new cornerstoneTools.Synchronizer('CornerstoneNewImage', cornerstoneTools.updateImageSynchronizer);
+    OHIF.viewer.updateImageSynchronizer = new cornerstoneTools.Synchronizer('cornerstonenewimage', cornerstoneTools.updateImageSynchronizer);
 
-    OHIF.viewer.metadataProvider = OHIF.cornerstone.metadataProvider;
+    OHIF.viewer.metadataProvider = new OHIF.cornerstone.MetadataProvider();
 
     // Metadata configuration
     const metadataProvider = OHIF.viewer.metadataProvider;
@@ -227,8 +227,8 @@ Template.viewer.onCreated(() => {
         firstMeasurementActivated = true;
     });
 
-    instance.measurementModifiedHandler = _.throttle((event, instance, eventData) => {
-        OHIF.measurements.MeasurementHandlers.onModified(event, instance, eventData);
+    instance.measurementModifiedHandler = _.throttle((event, instance) => {
+        OHIF.measurements.MeasurementHandlers.onModified(event, instance);
     }, 300);
 });
 
@@ -363,16 +363,19 @@ Template.viewer.helpers({
 });
 
 Template.viewer.events({
-    'CornerstoneToolsMeasurementAdded .imageViewerViewport'(event, instance, eventData) {
-        OHIF.measurements.MeasurementHandlers.onAdded(event, instance, eventData);
+    'cornerstonetoolsmeasurementadded .imageViewerViewport'(event, instance) {
+        const originalEvent = event.originalEvent;
+        OHIF.measurements.MeasurementHandlers.onAdded(originalEvent, instance);
     },
 
-    'CornerstoneToolsMeasurementModified .imageViewerViewport'(event, instance, eventData) {
-        instance.measurementModifiedHandler(event, instance, eventData);
+    'cornerstonetoolsmeasurementmodified .imageViewerViewport'(event, instance) {
+        const originalEvent = event.originalEvent;
+        instance.measurementModifiedHandler(originalEvent, instance);
     },
 
-    'CornerstoneToolsMeasurementRemoved .imageViewerViewport'(event, instance, eventData) {
-        OHIF.measurements.MeasurementHandlers.onRemoved(event, instance, eventData);
+    'cornerstonemeasurementremoved .imageViewerViewport'(event, instance) {
+        const originalEvent = event.originalEvent;
+        OHIF.measurements.MeasurementHandlers.onRemoved(originalEvent, instance);
     }
 });
 

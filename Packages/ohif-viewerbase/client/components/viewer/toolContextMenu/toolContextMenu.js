@@ -1,6 +1,6 @@
 import { Template } from 'meteor/templating';
-import { ReactiveVar } from 'meteor/reactive-var';
 import { OHIF } from 'meteor/ohif:core';
+import { cornerstone, cornerstoneTools } from 'meteor/ohif:cornerstone';
 import { toolManager } from '../../../lib/toolManager';
 
 const toolTypes = ['length', 'simpleAngle', 'probe', 'ellipticalRoi', 'rectangleRoi', 'arrowAnnotate'];
@@ -14,33 +14,30 @@ const TypeToLabelMap = {
 };
 let dropdownItems = [{
     actionType: 'Delete',
-    action: ({nearbyToolData, eventData}) => {
-        const element = eventData.element
+    action: ({ nearbyToolData, eventData }) => {
+        const element = eventData.element;
 
         cornerstoneTools.removeToolState(element, nearbyToolData.toolType, nearbyToolData.tool);
         cornerstone.updateImage(element);
     }
 }];
-let timer = 0;
 
 const getTypeText = function(toolData, actionType) {
     const toolType = toolData.toolType;
     let message = `${TypeToLabelMap[toolType]}`;
 
     if (toolType === 'arrowAnnotate') {
-        message = `${message} "${toolData.tool.text}"`
+        message = `${message} "${toolData.tool.text}"`;
     }
 
     return `${actionType} ${message}`;
 };
 
-const createDropdown = function (event, eventData, isTouchEvent = false) {
+const createDropdown = function(eventData, isTouchEvent = false) {
     const nearbyToolData = toolManager.getNearbyToolData(eventData.element, eventData.currentPoints.canvas, toolTypes);
 
     // Annotate tools for touch events already have a press handle to edit it, has a better UX for deleting it
-    if (isTouchEvent && nearbyToolData.toolType === 'arrowAnnotate') {
-      return;
-    }
+    if (isTouchEvent && nearbyToolData.toolType === 'arrowAnnotate') return;
 
     if (nearbyToolData) {
         dropdownItems.forEach(function(item) {
@@ -59,13 +56,17 @@ const createDropdown = function (event, eventData, isTouchEvent = false) {
 };
 
 Template.viewerMain.events({
-    'CornerstoneToolsMouseClick .imageViewerViewport'(event, instance, eventData) {
-        if (event.which === 3) {
-            createDropdown(event, eventData);
+    'cornerstonetoolsmouseclick .imageViewerViewport'(event) {
+        const { originalEvent } = event;
+        const eventData = originalEvent.detail;
+        if (eventData.which === 3) {
+            createDropdown(eventData);
         }
     },
 
-    'CornerstoneToolsTouchPress .imageViewerViewport'(event, instance, eventData) {
-        createDropdown(event, eventData, true);
+    'cornerstonetoolstouchpress .imageViewerViewport'(event) {
+        const { originalEvent } = event;
+        const eventData = originalEvent.detail;
+        createDropdown(eventData, true);
     }
 });

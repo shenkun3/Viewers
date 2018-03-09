@@ -2,8 +2,6 @@ import { OHIF } from 'meteor/ohif:core';
 import { $ } from 'meteor/jquery';
 import { cornerstone, cornerstoneMath, cornerstoneTools } from 'meteor/ohif:cornerstone';
 
-window.resolve = [];
-
 OHIF.measurements.getImageDataUrl = ({
     imageType='image/jpeg',
     quality=1,
@@ -24,7 +22,6 @@ OHIF.measurements.getImageDataUrl = ({
     }
 
     return new Promise((resolve, reject) => {
-        window.resolve.push(resolve);
         const loadMethod = cacheImage ? 'loadAndCacheImage' : 'loadImage';
         cornerstone[loadMethod](imageId).then(image => {
             // Create a cornerstone enabled element to handle the image
@@ -37,6 +34,14 @@ OHIF.measurements.getImageDataUrl = ({
             // Add the measurement state and enable the tool if a measurement was given
             if (measurement) {
                 const state = Object.assign({}, measurement, { active: true });
+                Object.keys(measurement.handles).forEach(handleKey => {
+                    const handle = Object.assign({}, state.handles[handleKey]);
+                    handle.selected = false;
+                    handle.active = false;
+                    handle.moving = false;
+                    state.handles[handleKey] = handle;
+                });
+
                 cornerstoneTools.addToolState(element, measurement.toolType, state);
                 cornerstoneTools[measurement.toolType].enable(element);
             }
@@ -66,7 +71,7 @@ OHIF.measurements.getImageDataUrl = ({
             };
 
             // Wait for image rendering to get its data URL
-            $(element).one('CornerstoneImageRendered', () => {
+            $(element).one('cornerstoneimagerendered', () => {
                 if (measurement && alwaysVisibleText) {
                     rearrangeTextBox(image, measurement, element).then(() => renderedCallback());
                 } else {
@@ -143,7 +148,7 @@ const rearrangeTextBox = (image, measurement, element) => new Promise((resolve, 
         textBox.boundingBox.top = intersection.y - y0;
         Object.assign(textBox, intersection);
         cornerstone.updateImage(element);
-        $(element).one('CornerstoneImageRendered', () => resolve());
+        $(element).one('cornerstoneimagerendered', () => resolve());
     } else {
         resolve();
     }

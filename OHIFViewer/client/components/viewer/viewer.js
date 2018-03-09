@@ -67,9 +67,9 @@ Meteor.startup(() => {
     OHIF.viewer.stackImagePositionOffsetSynchronizer = new OHIF.viewerbase.StackImagePositionOffsetSynchronizer();
 
     // Create the synchronizer used to update reference lines
-    OHIF.viewer.updateImageSynchronizer = new cornerstoneTools.Synchronizer('CornerstoneNewImage', cornerstoneTools.updateImageSynchronizer);
+    OHIF.viewer.updateImageSynchronizer = new cornerstoneTools.Synchronizer('cornerstonenewimage', cornerstoneTools.updateImageSynchronizer);
 
-    OHIF.viewer.metadataProvider = OHIF.cornerstone.metadataProvider;
+    OHIF.viewer.metadataProvider = new OHIF.cornerstone.MetadataProvider();
 
     // Metadata configuration
     const metadataProvider = OHIF.viewer.metadataProvider;
